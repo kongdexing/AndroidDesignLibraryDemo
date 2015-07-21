@@ -1,40 +1,82 @@
 package com.magical.stickymapnav.avtivity;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 
 import com.magical.stickymapnav.R;
+import com.magical.stickymapnav.http.request.HttpRequestServer;
+import com.magical.stickymapnav.view.SimpleViewPagerIndicator;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends FragmentActivity {
+
+    private String[] mTitles = new String[]{"简介", "评价", "相关"};
+    private SimpleViewPagerIndicator mIndicator;
+    private ViewPager mViewPager;
+    private FragmentPagerAdapter mAdapter;
+    private TabFragment[] mFragments = new TabFragment[mTitles.length];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initViews();
+        initDatas();
+        initEvents();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    private void initEvents() {
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+            }
+
+            @Override
+            public void onPageScrolled(int position, float positionOffset,
+                                       int positionOffsetPixels) {
+                mIndicator.scroll(position, positionOffset);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    private void initDatas() {
+        mIndicator.setTitles(mTitles);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        for (int i = 0; i < mTitles.length; i++) {
+            mFragments[i] = (TabFragment) TabFragment.newInstance(mTitles[i]);
         }
 
-        return super.onOptionsItemSelected(item);
+        mAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public int getCount() {
+                return mTitles.length;
+            }
+
+            @Override
+            public Fragment getItem(int position) {
+                HttpRequestServer.getInstance().getUserRequest().getUserInfo();
+                return mFragments[position];
+            }
+
+        };
+
+        mViewPager.setAdapter(mAdapter);
+        mViewPager.setCurrentItem(0);
     }
+
+    private void initViews() {
+        mIndicator = (SimpleViewPagerIndicator) findViewById(R.id.id_stickynavlayout_indicator);
+        mViewPager = (ViewPager) findViewById(R.id.id_stickynavlayout_viewpager);
+    }
+
 }
